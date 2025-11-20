@@ -22,9 +22,10 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { loginSchema } from "../schemas";
-
+import { useLogin } from "../api/use-login";
 
 export function SignInCard() {
+  const { mutate } = useLogin();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,7 +35,7 @@ export function SignInCard() {
   });
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    console.log({ values });
+    mutate({ json: values });
   };
   return (
     <Card className="w-full h-full md:w-[487px] border-none shadow-none">
