@@ -1,4 +1,5 @@
 import { z } from "zod";
+import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { Controller, useForm } from "react-hook-form";
@@ -20,20 +21,21 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { loginSchema } from "../schemas";
 
-const formSchema = z.object({
-  email: z.email(),
-  password: z.string(),
-});
 
 export function SignInCard() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
+
+  const onSubmit = (values: z.infer<typeof loginSchema>) => {
+    console.log({ values });
+  };
   return (
     <Card className="w-full h-full md:w-[487px] border-none shadow-none">
       <CardHeader className="flex items-center justify-center text-center p-7">
@@ -43,24 +45,24 @@ export function SignInCard() {
         <DottedSeparator />
       </div>
       <CardContent className="px-7">
-        <form id="form-login" className="space-y-4">
+        <form
+          id="form-signin"
+          className="space-y-4"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <FieldGroup>
             <Controller
               name="email"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-login-email">Email</FieldLabel>
+                  <FieldLabel htmlFor="form-signin-email">Email</FieldLabel>
                   <Input
                     {...field}
-                    required
-                    id="form-login-email"
+                    id="form-signin-email"
                     aria-invalid={fieldState.invalid}
                     type="email"
-                    value={""}
-                    onChange={() => {}}
                     placeholder="Enter email address"
-                    disabled={false}
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -73,21 +75,15 @@ export function SignInCard() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-login-password">
+                  <FieldLabel htmlFor="form-signin-password">
                     Password
                   </FieldLabel>
                   <Input
                     {...field}
-                    required
-                    id="form-login-password"
+                    id="form-signin-password"
                     aria-invalid={fieldState.invalid}
                     type="password"
-                    value={""}
-                    onChange={() => {}}
                     placeholder="Enter password"
-                    disabled={false}
-                    min={8}
-                    max={256}
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -98,10 +94,22 @@ export function SignInCard() {
           </FieldGroup>
         </form>
       </CardContent>
-      <CardContent className="space-y-4">
-        <Button disabled={false} size={"lg"} className="w-full">
+      <CardContent className="flex flex-col items-center justify-center space-y-2">
+        <Button
+          type="submit"
+          disabled={false}
+          size={"lg"}
+          className="w-full"
+          form="form-signin"
+        >
           Login
         </Button>
+        <p className="text-neutral-600">
+          Don&apos;t have an account?
+          <Link href={"/sign-up"}>
+            <span className="text-blue-700">&nbsp;Sign Up</span>
+          </Link>
+        </p>
       </CardContent>
       <div className="px-7">
         <DottedSeparator />
