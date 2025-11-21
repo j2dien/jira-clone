@@ -1,3 +1,5 @@
+"use client"
+
 import { z } from "zod";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
@@ -25,7 +27,7 @@ import { loginSchema } from "../schemas";
 import { useLogin } from "../api/use-login";
 
 export function SignInCard() {
-  const { mutate } = useLogin();
+  const { mutate, isPending } = useLogin();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -98,7 +100,7 @@ export function SignInCard() {
       <CardContent className="flex flex-col items-center justify-center space-y-2">
         <Button
           type="submit"
-          disabled={false}
+          disabled={isPending}
           size={"lg"}
           className="w-full"
           form="form-signin"
@@ -117,7 +119,7 @@ export function SignInCard() {
       </div>
       <CardFooter className="px-7 flex flex-col gap-y-4">
         <Button
-          disabled={false}
+          disabled={isPending}
           variant={"secondary"}
           size={"lg"}
           className="w-full"
@@ -126,7 +128,7 @@ export function SignInCard() {
           Login with Google
         </Button>
         <Button
-          disabled={false}
+          disabled={isPending}
           variant={"secondary"}
           size={"lg"}
           className="w-full"
