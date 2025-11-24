@@ -2,11 +2,11 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 
 import auth from "@/features/auth/server/route";
+import workspaces from "@/features/workspaces/server/routes";
 
 const app = new Hono().basePath("/api");
 
-const routes = app
-    .route("/auth", auth);
+const routes = app.route("/auth", auth).route("/worspaces", workspaces);
 
 export const GET = handle(app);
 export const POST = handle(app);
