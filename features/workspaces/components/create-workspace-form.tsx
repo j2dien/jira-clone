@@ -21,12 +21,14 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { useCreateWorspace } from "../api/use-create-workspace";
 
 interface CreateWorkspaceFormProps {
   onCancel: () => void;
 }
 
 export function CreateWorkspaceForm({ onCancel }: CreateWorkspaceFormProps) {
+  const { mutate, isPending } = useCreateWorspace();
   const form = useForm<z.infer<typeof createWorkspaceSchema>>({
     resolver: zodResolver(createWorkspaceSchema),
     defaultValues: {
@@ -35,7 +37,7 @@ export function CreateWorkspaceForm({ onCancel }: CreateWorkspaceFormProps) {
   });
 
   const onSubmit = (values: z.infer<typeof createWorkspaceSchema>) => {
-    console.log({ values });
+    mutate({ json: values });
   };
 
   return (
@@ -83,16 +85,17 @@ export function CreateWorkspaceForm({ onCancel }: CreateWorkspaceFormProps) {
         <DottedSeparator />
       </div>
 
-      <CardFooter className="flex items-center justify-between">
+      <CardFooter className="flex items-center justify-end gap-2">
         <Button
           type="button"
           size={"lg"}
           variant={"secondary"}
           onClick={onCancel}
+          disabled={isPending}
         >
           Cancel
         </Button>
-        <Button size={"lg"} form="form-create-workspace">
+        <Button size={"lg"} form="form-create-workspace" disabled={isPending}>
           Create Workspace
         </Button>
       </CardFooter>
