@@ -6,7 +6,7 @@ import { client } from "@/lib/rpc";
 type ResponseType = InferResponseType<(typeof client.api.worspaces)["$post"]>;
 type RequestType = InferRequestType<(typeof client.api.worspaces)["$post"]>;
 
-export function useLogin() {
+export function useCreateWorspace() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation<ResponseType, Error, RequestType>({
