@@ -7,7 +7,9 @@ interface StandaloneLayoutProps {
 }
 export default function StandaloneLayout({ children }: StandaloneLayoutProps) {
   return (
-    <main className="bg-neutral-100 min-h-screen">
+    <main
+      className="bg-neutral-100 min-h-screen"
+    >
       <div className="mx-auto container p-4">
         <nav className="flex justify-between items-center h-[73px]">
           <Link href={"/"}>

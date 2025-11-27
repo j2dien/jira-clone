@@ -10,7 +10,7 @@ import { Workspace } from "./types";
 export async function getWorkspaces() {
   try {
     const { account, tables } = await createSessionClient();
-    
+
     const user = await account.get();
 
     const members = await tables.listRows({
@@ -67,6 +67,28 @@ export async function getWorkspace({ workspaceId }: GetWorkspaceProps) {
     });
 
     return workspace;
+  } catch {
+    return null;
+  }
+}
+
+interface GetWorkspaceInfoProps {
+  workspaceId: string;
+}
+
+export async function getWorkspaceInfo({ workspaceId }: GetWorkspaceInfoProps) {
+  try {
+    const { tables } = await createSessionClient();
+
+    const workspace = await tables.getRow<Workspace>({
+      databaseId: DATABASE_ID,
+      tableId: WORKSPACES_ID,
+      rowId: workspaceId,
+    });
+
+    return {
+      name: workspace.name,
+    };
   } catch {
     return null;
   }

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { Hono } from "hono";
 import { ID, Query } from "node-appwrite";
 import { zValidator } from "@hono/zod-validator";
@@ -5,6 +6,7 @@ import { zValidator } from "@hono/zod-validator";
 import { MemberRole } from "@/features/members/types";
 import { getMember } from "@/features/members/utils";
 
+import { generateInviteCode } from "@/lib/utils";
 import { sessionMiddleware } from "@/lib/session-middleware";
 import {
   DATABASE_ID,
@@ -13,8 +15,11 @@ import {
   WORKSPACES_ID,
 } from "@/app/config";
 
-import { createWorkspaceSchema, updateWorkspaceSchema } from "../schemas";
-import { generateInviteCode } from "@/lib/utils";
+import { Workspace } from "@/features/workspaces/types";
+import {
+  createWorkspaceSchema,
+  updateWorkspaceSchema,
+} from "@/features/workspaces/schemas";
 
 const app = new Hono()
   .get("/", sessionMiddleware, async (c) => {
@@ -143,15 +148,15 @@ const app = new Hono()
         uploadedImageUrl = image;
       }
 
-      const workspace = await tables.updateRow(
-        DATABASE_ID,
-        WORKSPACES_ID,
-        workspaceId,
-        {
+      const workspace = await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: WORKSPACES_ID,
+        rowId: workspaceId,
+        data: {
           name,
           imageUrl: uploadedImageUrl,
-        }
-      );
+        },
+      });
 
       return c.json({ data: workspace });
     }
@@ -181,6 +186,78 @@ const app = new Hono()
     });
 
     return c.json({ data: { $id: workspaceId } });
-  });
+  })
+  .post("/:workspaceId/reset-invite-code", sessionMiddleware, async (c) => {
+    const tables = c.get("tables");
+    const user = c.get("user");
+
+    const { workspaceId } = c.req.param();
+
+    const member = await getMember({
+      tables,
+      workspaceId,
+      userId: user.$id,
+    });
+
+    if (!member || member.role !== MemberRole.ADMIN) {
+      return c.json({ error: "Unautohrized" }, 401);
+    }
+
+    const workspace = await tables.updateRow({
+      databaseId: DATABASE_ID,
+      tableId: WORKSPACES_ID,
+      rowId: workspaceId,
+      data: {
+        inviteCode: generateInviteCode(6),
+      },
+    });
+
+    return c.json({ data: workspace });
+  })
+  .post(
+    "/:workspaceId/join",
+    sessionMiddleware,
+    zValidator("json", z.object({ code: z.string() })),
+    async (c) => {
+      const { workspaceId } = c.req.param();
+      const { code } = c.req.valid("json");
+
+      const tables = c.get("tables");
+      const user = c.get("user");
+
+      const member = await getMember({
+        tables,
+        workspaceId,
+        userId: user.$id,
+      });
+
+      if (member) {
+        return c.json({ error: "Already a member" }, 400);
+      }
+
+      const workspace = await tables.getRow<Workspace>({
+        databaseId: DATABASE_ID,
+        tableId: WORKSPACES_ID,
+        rowId: workspaceId,
+      });
+
+      if (workspace.inviteCode !== code) {
+        return c.json({ error: "Invalid invite code" }, 400);
+      }
+
+      await tables.createRow({
+        databaseId: DATABASE_ID,
+        tableId: MEMBERS_ID,
+        rowId: ID.unique(),
+        data: {
+          workspaceId: workspaceId,
+          userId: user.$id,
+          role: MemberRole.MEMBER,
+        },
+      });
+
+      return c.json({ data: { workspace } });
+    }
+  );
 
 export default app;
