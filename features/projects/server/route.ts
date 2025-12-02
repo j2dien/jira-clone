@@ -7,6 +7,7 @@ import { getMember } from "@/features/members/utils";
 import { sessionMiddleware } from "@/lib/session-middleware";
 import { DATABASE_ID, IMAGES_BUCKET_ID, PROJECTS_ID } from "@/app/config";
 import { createProjectSchema } from "../schemas";
+import { Project } from "../types";
 
 const app = new Hono()
   .post(
@@ -85,7 +86,7 @@ const app = new Hono()
 
       if (!member) return c.json({ error: "Unauthorized" }, 401);
 
-      const projects = await tables.listRows({
+      const projects = await tables.listRows<Project>({
         databaseId: DATABASE_ID,
         tableId: PROJECTS_ID,
         queries: [
