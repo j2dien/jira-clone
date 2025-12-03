@@ -148,7 +148,7 @@ const app = new Hono()
         uploadedImageUrl = image;
       }
 
-      const workspace = await tables.updateRow({
+      const workspace = await tables.updateRow<Workspace>({
         databaseId: DATABASE_ID,
         tableId: WORKSPACES_ID,
         rowId: workspaceId,

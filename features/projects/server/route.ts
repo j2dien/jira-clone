@@ -52,13 +52,13 @@ const app = new Hono()
         ).toString("base64")}`;
       }
 
-      const project = await tables.createRow({
+      const project = await tables.createRow<Project>({
         databaseId: DATABASE_ID,
         tableId: PROJECTS_ID,
         rowId: ID.unique(),
         data: {
           name: name,
-          imageUrl: uploadedImageUrl,
+          imageUrl: uploadedImageUrl || "",
           workspaceId: workspaceId,
         },
       });
@@ -149,7 +149,7 @@ const app = new Hono()
         uploadedImageUrl = image;
       }
 
-      const project = await tables.updateRow({
+      const project = await tables.updateRow<Project>({
         databaseId: DATABASE_ID,
         tableId: PROJECTS_ID,
         rowId: projectId,
@@ -161,6 +161,38 @@ const app = new Hono()
 
       return c.json({ data: project });
     }
-  );
+  )
+  .delete("/:projectId", sessionMiddleware, async (c) => {
+    const tables = c.get("tables");
+    const user = c.get("user");
+
+    const { projectId } = c.req.param();
+
+    const existingProject = await tables.getRow<Project>({
+      databaseId: DATABASE_ID,
+      tableId: PROJECTS_ID,
+      rowId: projectId,
+    });
+
+    const member = await getMember({
+      tables,
+      workspaceId: existingProject.workspaceId,
+      userId: user.$id,
+    });
+
+    if (!member) {
+      return c.json({ error: "Unautohrized" }, 401);
+    }
+
+    // TODO: Delete tasks
+
+    await tables.deleteRow({
+      databaseId: DATABASE_ID,
+      tableId: PROJECTS_ID,
+      rowId: projectId,
+    });
+
+    return c.json({ data: { $id: existingProject.$id } });
+  });
 
 export default app;

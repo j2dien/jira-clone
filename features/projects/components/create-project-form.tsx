@@ -43,7 +43,7 @@ export function CreateProjectForm({ onCancel }: CreateProjectFormProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof createProjectSchema>>({
-    resolver: zodResolver(createProjectSchema.omit({workspaceId: true})),
+    resolver: zodResolver(createProjectSchema.omit({ workspaceId: true })),
     defaultValues: {
       name: "",
     },
@@ -58,9 +58,9 @@ export function CreateProjectForm({ onCancel }: CreateProjectFormProps) {
     mutate(
       { form: finalValues },
       {
-        onSuccess: () => {
+        onSuccess: ({ data }) => {
           form.reset();
-          // TODO: Redirect to project screen
+          router.push(`/workspaces/${workspaceId}/projects/${data.$id}`);
         },
       }
     );
@@ -85,7 +85,7 @@ export function CreateProjectForm({ onCancel }: CreateProjectFormProps) {
       </div>
       <CardContent className="p-7">
         <form
-          id="form-create-workspace"
+          id="form-create-project"
           className="space-y-4"
           onSubmit={form.handleSubmit(onSubmit)}
         >
@@ -95,15 +95,15 @@ export function CreateProjectForm({ onCancel }: CreateProjectFormProps) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-create-workspace-name">
+                  <FieldLabel htmlFor="form-create-project-name">
                     Project Name
                   </FieldLabel>
                   <Input
                     {...field}
-                    id="form-create-workspace-name"
+                    id="form-create-project-name"
                     aria-invalid={fieldState.invalid}
                     type="text"
-                    placeholder="Enter workspace name"
+                    placeholder="Enter project name"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -202,7 +202,7 @@ export function CreateProjectForm({ onCancel }: CreateProjectFormProps) {
         >
           Cancel
         </Button>
-        <Button size={"lg"} form="form-create-workspace" disabled={isPending}>
+        <Button size={"lg"} form="form-create-project" disabled={isPending}>
           Create Project
         </Button>
       </CardFooter>
