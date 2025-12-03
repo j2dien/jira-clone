@@ -4,9 +4,11 @@ import { zValidator } from "@hono/zod-validator";
 import { Query, ID } from "node-appwrite";
 
 import { getMember } from "@/features/members/utils";
-import { sessionMiddleware } from "@/lib/session-middleware";
+
 import { DATABASE_ID, IMAGES_BUCKET_ID, PROJECTS_ID } from "@/app/config";
-import { createProjectSchema } from "../schemas";
+import { sessionMiddleware } from "@/lib/session-middleware";
+
+import { createProjectSchema, updateProjectSchema } from "../schemas";
 import { Project } from "../types";
 
 const app = new Hono()
@@ -96,6 +98,68 @@ const app = new Hono()
       });
 
       return c.json({ data: projects });
+    }
+  )
+  .patch(
+    "/:projectId",
+    sessionMiddleware,
+    zValidator("form", updateProjectSchema),
+    async (c) => {
+      const tables = c.get("tables");
+      const storage = c.get("storage");
+      const user = c.get("user");
+
+      const { projectId } = c.req.param();
+      const { name, image } = c.req.valid("form");
+
+      const existingProject = await tables.getRow<Project>({
+        databaseId: DATABASE_ID,
+        tableId: PROJECTS_ID,
+        rowId: projectId,
+      });
+
+      const member = await getMember({
+        tables,
+        workspaceId: existingProject.workspaceId,
+        userId: user.$id,
+      });
+
+      if (!member) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+
+      let uploadedImageUrl: string | undefined;
+
+      if (image instanceof File) {
+        const file = await storage.createFile({
+          bucketId: IMAGES_BUCKET_ID,
+          fileId: ID.unique(),
+          file: image,
+        });
+
+        const arrayBuffer = await storage.getFilePreview({
+          bucketId: IMAGES_BUCKET_ID,
+          fileId: file.$id,
+        });
+
+        uploadedImageUrl = `data:image/png;base64,${Buffer.from(
+          arrayBuffer
+        ).toString("base64")}`;
+      } else {
+        uploadedImageUrl = image;
+      }
+
+      const project = await tables.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: PROJECTS_ID,
+        rowId: projectId,
+        data: {
+          name,
+          imageUrl: uploadedImageUrl,
+        },
+      });
+
+      return c.json({ data: project });
     }
   );
 
