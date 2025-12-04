@@ -8,7 +8,7 @@ import { DATABASE_ID, MEMBERS_ID } from "@/app/config";
 import { sessionMiddleware } from "@/lib/session-middleware";
 
 import { getMember } from "../utils";
-import { MemberRole, Members } from "../types";
+import { MemberRole, Member } from "../types";
 
 const app = new Hono()
   .get(
@@ -31,7 +31,7 @@ const app = new Hono()
         return c.json({ error: "Unauthorized" }, 401);
       }
 
-      const members = await tables.listRows<Members>({
+      const members = await tables.listRows<Member>({
         databaseId: DATABASE_ID,
         tableId: MEMBERS_ID,
         queries: [Query.equal("workspaceId", workspaceId)],
@@ -59,13 +59,13 @@ const app = new Hono()
     const user = c.get("user");
     const tables = c.get("tables");
 
-    const memberToDelete = await tables.getRow<Members>({
+    const memberToDelete = await tables.getRow<Member>({
       databaseId: DATABASE_ID,
       tableId: MEMBERS_ID,
       rowId: memberId,
     });
 
-    const allMembersInWorkspace = await tables.listRows<Members>({
+    const allMembersInWorkspace = await tables.listRows<Member>({
       databaseId: DATABASE_ID,
       tableId: MEMBERS_ID,
       queries: [Query.equal("workspaceId", memberToDelete.workspaceId)],
@@ -107,13 +107,13 @@ const app = new Hono()
       const user = c.get("user");
       const tables = c.get("tables");
 
-      const memberToUpdate = await tables.getRow<Members>({
+      const memberToUpdate = await tables.getRow<Member>({
         databaseId: DATABASE_ID,
         tableId: MEMBERS_ID,
         rowId: memberId,
       });
 
-      const allMembersInWorkspace = await tables.listRows<Members>({
+      const allMembersInWorkspace = await tables.listRows<Member>({
         databaseId: DATABASE_ID,
         tableId: MEMBERS_ID,
         queries: [Query.equal("workspaceId", memberToUpdate.workspaceId)],

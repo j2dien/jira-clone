@@ -5,7 +5,7 @@ export enum MemberRole {
   MEMBER = "MEMBER",
 }
 
-export type Members = Models.Row & {
+export type Member = Models.Row & {
   userId: string;
   workspaceId: string;
   role: MemberRole;
