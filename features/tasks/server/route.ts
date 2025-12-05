@@ -15,7 +15,7 @@ import { createTaskSchema } from "../schemas";
 import { Task, TaskStatus } from "../types";
 
 const app = new Hono()
-  .post(
+  .get(
     "/",
     sessionMiddleware,
     zValidator(
