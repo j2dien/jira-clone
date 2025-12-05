@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import MemberAvatar from "@/features/members/components/member-avatar";
+import ProjectAvatar from "@/features/projects/components/project-avatar";
 import { useWorkspaceId } from "@/features/workspaces/hooks/use-workspace-id";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/date-picker";
 import { DottedSeparator } from "@/components/dotted-separator";
 import {
   Card,
@@ -24,9 +27,18 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+import { TaskStatus } from "../types";
 import { createTaskSchema } from "../schemas";
 import { useCreateTask } from "../api/use-create-task";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CreateTaskFormProps {
   onCancel?: () => void;
@@ -47,6 +59,12 @@ export function CreateTaskForm({
     resolver: zodResolver(createTaskSchema.omit({ workspaceId: true })),
     defaultValues: {
       workspaceId,
+      name: "",
+      dueDate: undefined,
+      assigneeId: "",
+      status: undefined,
+      projectId: "",
+      description: "",
     },
   });
 
@@ -56,7 +74,7 @@ export function CreateTaskForm({
       {
         onSuccess: () => {
           form.reset();
-          // TODO: Redirect to new task
+          onCancel?.();
         },
       }
     );
@@ -64,13 +82,13 @@ export function CreateTaskForm({
 
   return (
     <Card className="w-full h-full border-none shadow-none">
-      <CardHeader className="flex p-7">
+      <CardHeader className="flex px-7">
         <CardTitle className="text-xl font-bold">Create a new task</CardTitle>
       </CardHeader>
       <div className="px-7">
         <DottedSeparator />
       </div>
-      <CardContent className="p-7">
+      <CardContent className="px-7 py-4">
         <form
           id="form-create-task"
           className="space-y-4"
@@ -106,7 +124,124 @@ export function CreateTaskForm({
                   <FieldLabel htmlFor="form-create-task-dueDate">
                     Due Date
                   </FieldLabel>
-                  {/* TODO: Date Picker */}
+                  <DatePicker id="form-create-task-dueDate" {...field} />
+                </Field>
+              )}
+            />
+            <Controller
+              name="assigneeId"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-task-assigneeId">
+                    Assignee
+                  </FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="form-create-task-assigneeId">
+                      <SelectValue placeholder="Select assignee" />
+                    </SelectTrigger>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                    <SelectContent>
+                      {membertions.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          <div className="flex items-center gap-x-2">
+                            <MemberAvatar
+                              className="size-6"
+                              name={member.name}
+                            />
+                            <p>{member.name}</p>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+            <Controller
+              name="status"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-task-status">
+                    Status
+                  </FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="form-create-task-status">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                    <SelectContent>
+                      <SelectItem value={TaskStatus.BACKLOG}>
+                        Backlog
+                      </SelectItem>
+                      <SelectItem value={TaskStatus.IN_PROGRESS}>
+                        In Progress
+                      </SelectItem>
+                      <SelectItem value={TaskStatus.IN_REVIEW}>
+                        In Review
+                      </SelectItem>
+                      <SelectItem value={TaskStatus.TODO}>Todo</SelectItem>
+                      <SelectItem value={TaskStatus.DONE}>Done</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+            <Controller
+              name="projectId"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-task-projectId">
+                    Project
+                  </FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="form-create-task-projectId">
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                    <SelectContent>
+                      {projecOptions.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          <div className="flex items-center gap-x-2">
+                            <ProjectAvatar
+                              className="size-6"
+                              name={project.name}
+                              image={project.imageUrl}
+                            />
+                            <p>{project.name}</p>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-task-description">
+                    Description
+                  </FieldLabel>
+                  <Textarea
+                    {...field}
+                    id="form-create-task-description"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter task description"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -128,7 +263,12 @@ export function CreateTaskForm({
         >
           Cancel
         </Button>
-        <Button size={"lg"} form="form-create-task" disabled={isPending}>
+        <Button
+          type="submit"
+          size={"lg"}
+          form="form-create-task"
+          disabled={isPending}
+        >
           Create Task
         </Button>
       </CardFooter>

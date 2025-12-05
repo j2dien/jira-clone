@@ -71,7 +71,7 @@ export function CreateWorkspaceForm({ onCancel }: CreateWorkspaceFormProps) {
 
   return (
     <Card className="w-full h-full border-none shadow-none">
-      <CardHeader className="flex p-7">
+      <CardHeader className="flex px-7">
         <CardTitle className="text-xl font-bold">
           Create a new workspace
         </CardTitle>
@@ -79,7 +79,7 @@ export function CreateWorkspaceForm({ onCancel }: CreateWorkspaceFormProps) {
       <div className="px-7">
         <DottedSeparator />
       </div>
-      <CardContent className="p-7">
+      <CardContent className="px-7 py-4">
         <form
           id="form-create-workspace"
           className="space-y-4"
