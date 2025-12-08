@@ -10,7 +10,7 @@ interface ProjectAvatarProps {
   className?: string;
   fallbackClassName?: string;
 }
-export default function ProjectAvatar({
+export function ProjectAvatar({
   image,
   name,
   className,

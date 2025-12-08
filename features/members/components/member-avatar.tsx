@@ -7,7 +7,7 @@ interface MemberAvatarProps {
   className?: string;
   fallbackClassname?: string;
 }
-export default function MemberAvatar({
+export function MemberAvatar({
   name,
   className,
   fallbackClassname,

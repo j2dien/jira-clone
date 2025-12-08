@@ -19,7 +19,6 @@ export function useGetProjects({ workspaceId }: UseGetProjectProps) {
       }
 
       const { data } = await response.json();
-      console.log(data)
 
       return data;
     },

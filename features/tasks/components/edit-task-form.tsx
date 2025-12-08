@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import {MemberAvatar} from "@/features/members/components/member-avatar";
+import { MemberAvatar } from "@/features/members/components/member-avatar";
 import { ProjectAvatar } from "@/features/projects/components/project-avatar";
 import { useWorkspaceId } from "@/features/workspaces/hooks/use-workspace-id";
 
@@ -35,42 +35,43 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { TaskStatus } from "../types";
+import { Task, TaskStatus } from "../types";
 import { createTaskSchema } from "../schemas";
-import { useCreateTask } from "../api/use-create-task";
+import { useUpdateTask } from "../api/use-update-task";
 import { Textarea } from "@/components/ui/textarea";
 
-interface CreateTaskFormProps {
+interface EditTaskFormProps {
   onCancel?: () => void;
   projecOptions: { id: string; name: string; imageUrl: string }[];
   membertions: { id: string; name: string }[];
+  initialValues: Task;
 }
 
-export function CreateTaskForm({
+export function EditTaskForm({
   onCancel,
   projecOptions,
   membertions,
-}: CreateTaskFormProps) {
+  initialValues,
+}: EditTaskFormProps) {
   const workspaceId = useWorkspaceId();
   const router = useRouter();
-  const { mutate, isPending } = useCreateTask();
+  const { mutate, isPending } = useUpdateTask();
 
   const form = useForm<z.infer<typeof createTaskSchema>>({
-    resolver: zodResolver(createTaskSchema.omit({ workspaceId: true })),
+    resolver: zodResolver(
+      createTaskSchema.omit({ workspaceId: true, description: true })
+    ),
     defaultValues: {
-      workspaceId,
-      name: "",
-      dueDate: undefined,
-      assigneeId: "",
-      status: undefined,
-      projectId: "",
-      description: "",
+      ...initialValues,
+      dueDate: initialValues.dueDate
+        ? new Date(initialValues.dueDate)
+        : undefined,
     },
   });
 
   const onSubmit = (values: z.infer<typeof createTaskSchema>) => {
     mutate(
-      { json: { ...values, workspaceId } },
+      { json: values, param: { taskId: initialValues.$id } },
       {
         onSuccess: () => {
           form.reset();
@@ -83,7 +84,7 @@ export function CreateTaskForm({
   return (
     <Card className="w-full h-full border-none shadow-none">
       <CardHeader className="flex px-7">
-        <CardTitle className="text-xl font-bold">Create a new task</CardTitle>
+        <CardTitle className="text-xl font-bold">Edit a task</CardTitle>
       </CardHeader>
       <div className="px-7">
         <DottedSeparator />
@@ -269,7 +270,7 @@ export function CreateTaskForm({
           form="form-create-task"
           disabled={isPending}
         >
-          Create Task
+          Save Changes
         </Button>
       </CardFooter>
     </Card>
