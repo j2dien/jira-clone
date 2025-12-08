@@ -1,4 +1,4 @@
-import { email, z } from "zod";
+import { z } from "zod";
 import { Hono } from "hono";
 import { ID, Query } from "node-appwrite";
 import { zValidator } from "@hono/zod-validator";
@@ -13,42 +13,37 @@ import { sessionMiddleware } from "@/lib/session-middleware";
 
 import { createTaskSchema } from "../schemas";
 import { Task, TaskStatus } from "../types";
-import { table } from "console";
 
 const app = new Hono()
-  .delete(
-    "/:taskId",
-    sessionMiddleware,
-    async (c) => {
-      const user = c.get("user");
-      const tables = c.get("tables");
-      const { taskId } = c.req.param();
+  .delete("/:taskId", sessionMiddleware, async (c) => {
+    const user = c.get("user");
+    const tables = c.get("tables");
+    const { taskId } = c.req.param();
 
-      const task = await tables.getRow<Task>({
-        databaseId: DATABASE_ID,
-        tableId: TASKS_ID,
-        rowId: taskId
-      })
+    const task = await tables.getRow<Task>({
+      databaseId: DATABASE_ID,
+      tableId: TASKS_ID,
+      rowId: taskId,
+    });
 
-      const member = await getMember({
-        tables,
-        workspaceId: task.workspaceId,
-        userId: user.$id
-      })
+    const member = await getMember({
+      tables,
+      workspaceId: task.workspaceId,
+      userId: user.$id,
+    });
 
-      if (!member) {
-        return c.json({ error: "Unauthorized" }, 401)
-      }
-
-      await tables.deleteRow({
-        databaseId: DATABASE_ID,
-        tableId: TASKS_ID,
-        rowId: taskId,
-      })
-
-      return c.json({ data: { $id: task.$id } })
+    if (!member) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
-  )
+
+    await tables.deleteRow({
+      databaseId: DATABASE_ID,
+      tableId: TASKS_ID,
+      rowId: taskId,
+    });
+
+    return c.json({ data: { $id: task.$id } });
+  })
   .get(
     "/",
     sessionMiddleware,
@@ -177,8 +172,15 @@ const app = new Hono()
     async (c) => {
       const user = c.get("user");
       const tables = c.get("tables");
-      const { name, status, workspaceId, projectId, dueDate, assigneeId, description } =
-        c.req.valid("json");
+      const {
+        name,
+        status,
+        workspaceId,
+        projectId,
+        dueDate,
+        assigneeId,
+        description,
+      } = c.req.valid("json");
 
       const member = await getMember({
         tables,
@@ -218,13 +220,14 @@ const app = new Hono()
           dueDate: dueDate,
           assigneeId: assigneeId,
           position: newPosition,
-          description: description || ""
+          description: description || "",
         },
       });
 
       return c.json({ data: task });
     }
-  ).patch(
+  )
+  .patch(
     "/:taskId",
     sessionMiddleware,
     zValidator("json", createTaskSchema.partial()),
@@ -239,8 +242,8 @@ const app = new Hono()
       const existingTask = await tables.getRow<Task>({
         databaseId: DATABASE_ID,
         tableId: TASKS_ID,
-        rowId: taskId
-      })
+        rowId: taskId,
+      });
 
       const member = await getMember({
         tables,
@@ -252,7 +255,7 @@ const app = new Hono()
         return c.json({ error: "Unauthorized" }, 401);
       }
 
-      const task = await tables.updateRow<Task>({
+      const task = await tables.updateRow({
         databaseId: DATABASE_ID,
         tableId: TASKS_ID,
         rowId: taskId,
@@ -260,67 +263,64 @@ const app = new Hono()
           name: name,
           status: status,
           projectId: projectId,
-          dueDate: String(dueDate),
+          dueDate: dueDate,
           assigneeId: assigneeId,
-          description: description || ""
+          description: description,
         },
       });
 
       return c.json({ data: task });
     }
-  ).get(
-    "/:taskId",
-    sessionMiddleware,
-    async (c) => {
-      const currentUser = c.get("user");
-      const tables = c.get("tables");
-      const { users } = await createAdminClient();
-      const { taskId } = c.req.param();
+  )
+  .get("/:taskId", sessionMiddleware, async (c) => {
+    const currentUser = c.get("user");
+    const tables = c.get("tables");
+    const { users } = await createAdminClient();
+    const { taskId } = c.req.param();
 
-      const task = await tables.getRow<Task>({
-        databaseId: DATABASE_ID,
-        tableId: TASKS_ID,
-        rowId: taskId
-      });
+    const task = await tables.getRow<Task>({
+      databaseId: DATABASE_ID,
+      tableId: TASKS_ID,
+      rowId: taskId,
+    });
 
-      const currentMember = await getMember({
-        tables,
-        workspaceId: task.workspaceId,
-        userId: currentUser.$id
-      });
+    const currentMember = await getMember({
+      tables,
+      workspaceId: task.workspaceId,
+      userId: currentUser.$id,
+    });
 
-      if (!currentMember) {
-        return c.json({ error: "Unauthorized" }, 401)
-      }
-
-      const project = await tables.getRow<Project>({
-        databaseId: DATABASE_ID,
-        tableId: PROJECTS_ID,
-        rowId: task.projectId
-      });
-
-      const member = await tables.getRow({
-        databaseId: DATABASE_ID,
-        tableId: MEMBERS_ID,
-        rowId: task.assigneeId
-      });
-
-      const user = await users.get({ userId: member.$id });
-
-      const assignee = {
-        ...member,
-        name: user.name,
-        email: user.email
-      }
-
-      return c.json({
-        data: {
-          ...task,
-          project,
-          assignee
-        }
-      })
+    if (!currentMember) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
-  );
+
+    const project = await tables.getRow<Project>({
+      databaseId: DATABASE_ID,
+      tableId: PROJECTS_ID,
+      rowId: task.projectId,
+    });
+
+    const member = await tables.getRow<Member>({
+      databaseId: DATABASE_ID,
+      tableId: MEMBERS_ID,
+      rowId: task.assigneeId,
+    });
+
+    const user = await users.get({ userId: member.userId });
+
+    const assignee = {
+      ...member,
+      name: user.name,
+      email: user.email,
+    };
+
+    return c.json({
+      data: {
+        ...task,
+        project,
+        assignee,
+      },
+    });
+  });
 
 export default app;

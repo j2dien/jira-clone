@@ -106,7 +106,6 @@ export const columns: ColumnDef<Task>[] = [
     },
     cell: ({ row }) => {
       const dueDate = row.original.dueDate;
-      console.log(dueDate);
 
       return <TaskDate value={dueDate} />;
     },
@@ -126,7 +125,6 @@ export const columns: ColumnDef<Task>[] = [
     },
     cell: ({ row }) => {
       const status = row.original.status;
-      console.log(status);
 
       return <Badge variant={status}>{snakeCaseToTitleCase(status)}</Badge>;
     },

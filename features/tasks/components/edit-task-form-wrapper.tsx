@@ -61,9 +61,9 @@ export function EditTaskFormWrapper({
   return (
     <EditTaskForm
       onCancel={onCancel}
+      initialValues={initialValues}
       projecOptions={projectOptions || []}
       membertions={memberOptions || []}
-      initialValues={initialValues}
     />
   );
 }
