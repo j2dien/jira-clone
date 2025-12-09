@@ -20,6 +20,7 @@ import { TaskStatus } from "../types";
 import { useGetTasks } from "../api/use-get-tasks";
 import { useTaskFilters } from "../hooks/use-task-filters";
 import { useCreateTaskModal } from "../hooks/use-create-task-modal";
+import { useBulkUpdateTask } from "../api/use-bulk-update-task";
 
 export function TaskViewSwitcher() {
   const [{ status, assigneeId, projectId, dueDate }] = useTaskFilters();
@@ -29,6 +30,8 @@ export function TaskViewSwitcher() {
 
   const workspaceId = useWorkspaceId();
   const { open } = useCreateTaskModal();
+
+  const { mutate: bulkUpdate } = useBulkUpdateTask();
 
   const { data: tasks, isLoading: isLoadingTasks } = useGetTasks({
     workspaceId,
@@ -40,9 +43,11 @@ export function TaskViewSwitcher() {
 
   const onKanbanChange = useCallback(
     (tasks: { $id: string; status: TaskStatus; position: number }[]) => {
-      console.log({ tasks });
+      bulkUpdate({
+        json: { tasks },
+      });
     },
-    []
+    [bulkUpdate]
   );
 
   return (
