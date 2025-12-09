@@ -321,6 +321,10 @@ const app = new Hono()
         assignee,
       },
     });
-  });
+  }).post(
+    "/bulk-update",
+    sessionMiddleware,
+    zValidator("json", z.object({}))
+  );
 
 export default app;

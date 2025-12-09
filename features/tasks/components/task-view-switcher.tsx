@@ -39,7 +39,7 @@ export function TaskViewSwitcher() {
   });
 
   const onKanbanChange = useCallback(
-    (tasks: { $id: string; state: TaskStatus; position: number }[]) => {
+    (tasks: { $id: string; status: TaskStatus; position: number }[]) => {
       console.log({ tasks });
     },
     []
