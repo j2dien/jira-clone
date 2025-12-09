@@ -9,7 +9,7 @@ export enum TaskStatus {
   DONE = "DONE",
 }
 
-type Assignee = Models.Row & {
+export type Assignee = Models.Row & {
     name: string;
     email: string;
   };
