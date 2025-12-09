@@ -167,7 +167,7 @@
 }
 
 .rbc-today {
-  background: inherit !important;
+  background: oklch(49.107% 0.24121 264.248 / 0.1) !important;
 }
 
 .rbc-off-range-bg {

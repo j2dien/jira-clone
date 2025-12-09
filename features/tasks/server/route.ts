@@ -272,7 +272,10 @@ const app = new Hono()
       return c.json({ data: task });
     }
   )
-  .get("/:taskId", sessionMiddleware, async (c) => {
+  .get(
+    "/:taskId",
+    sessionMiddleware,
+    async (c) => {
     const currentUser = c.get("user");
     const tables = c.get("tables");
     const { users } = await createAdminClient();
